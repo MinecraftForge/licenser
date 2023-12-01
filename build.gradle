@@ -1,26 +1,33 @@
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
-
-    id 'com.gradle.plugin-publish' version '0.14.0'
-
-    id 'org.cadixdev.licenser' version '0.5.1'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '1.2.1'
+    id 'net.minecraftforge.licenser'
+    id 'net.minecraftforge.gradleutils' version '2.3.3'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
 
-group = 'org.cadixdev.gradle'
-version = '0.7.0-SNAPSHOT'
-description = 'A simple license header manager for Gradle'
+group = 'net.minecraftforge'
+version gradleutils.tagOffsetVersion
+println "Version: $version"
 
 repositories {
     gradlePluginPortal()
 }
 
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+    withSourcesJar()
+}
+
+tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.optimizationOptions.indy = true
+}
+
 sourceSets {
-    functionalTest {
-    }
+    functionalTest
 }
 
 configurations {
@@ -40,9 +47,9 @@ tasks.register('functionalTest', Test) {
 }
 
 dependencies {
-    implementation gradleApi()
-
-    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+    testImplementation gradleTestKit()
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     functionalTestImplementation gradleTestKit()
 }
 
@@ -50,44 +57,47 @@ test {
     useJUnit()
 }
 
-tasks.named('check') {
-    dependsOn(functionalTest)
-}
-
 license {
     include '**/*.java'
     include '**/*.groovy'
 }
 
-task sourceJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task groovydocJar(type: Jar, dependsOn: groovydoc) {
-    archiveClassifier = 'groovydoc'
-    from groovydoc.destinationDir
-}
-
 gradlePlugin {
+    website = 'https://github.com/MinecraftForge/licenser'
+    vcsUrl = 'https://github.com/MinecraftForge/licenser.git'
+
     plugins {
-        licenserPlugin {
-            id = 'org.cadixdev.licenser'
-            implementationClass = 'org.cadixdev.gradle.licenser.Licenser'
+        licenser {
+            id = 'net.minecraftforge.licenser'
+            implementationClass = 'net.minecraftforge.licenser.Licenser'
+            displayName = 'Forge Licenser'
+            description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
+            tags = ['license']
         }
     }
 }
 
-pluginBundle {
-    website = 'https://www.cadixdev.org/'
-    vcsUrl = 'https://github.com/CadixDev/licenser'
-    description = project.description
-    tags = ['license']
+jar {
+    archiveClassifier = 'thin'
+}
 
-    plugins {
-        licenserPlugin {
-            id = 'org.cadixdev.licenser'
-            displayName = 'licenser'
+tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    enableRelocation true
+    archiveClassifier = null
+    relocationPrefix = 'net.minecraftforge.licenser.shadow'
+    relocate 'org.cadixdev.gradle.licenser', 'net.minecraftforge.licenser'
+}
+
+publishing {
+    publications.register('pluginMaven', MavenPublication) {
+        pom {
+            artifactId = 'licenser'
+        }
+    }
+
+    repositories {
+        maven {
+            url = 'file://' + file('build/repo').absolutePath
         }
     }
 }
