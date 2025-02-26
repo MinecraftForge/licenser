@@ -10,7 +10,7 @@ plugins {
 
 
 group = 'net.minecraftforge'
-version gradleutils.tagOffsetVersion
+version = gradleutils.tagOffsetVersion
 println "Version: $version"
 
 repositories {
@@ -82,7 +82,7 @@ jar {
 }
 
 tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    enableRelocation true
+    enableRelocation = true
     archiveClassifier = null
     relocationPrefix = 'net.minecraftforge.licenser.shadow'
     relocate 'org.cadixdev.gradle.licenser', 'net.minecraftforge.licenser'

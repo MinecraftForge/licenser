@@ -13,7 +13,7 @@ For a simple project you only need to apply the licenser plugin to your project:
 
 ```gradle
 plugins {
-    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'net.minecraftforge.licenser' version '1.1.0'
 }
 ```
 
@@ -88,11 +88,6 @@ The plugin can be configured using the `license` extension on the project.
     license {
         // Apply special license header to one source file
         matching('**/ThirdPartyLibrary.java') {
-            header = file('THIRDPARTY-LICENSE.txt')
-        }
-        
-        // Apply special license header to matching source files
-        matching(includes: ['**/thirdpartylibrary/**', '**/ThirdPartyLibrary.java']) {
             header = file('THIRDPARTY-LICENSE.txt')
         }
     }
