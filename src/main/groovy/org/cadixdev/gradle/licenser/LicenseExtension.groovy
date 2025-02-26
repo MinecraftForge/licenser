@@ -30,6 +30,7 @@ import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.internal.ConfigureByMapAction
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.provider.ListProperty
@@ -39,6 +40,7 @@ import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
+import org.jetbrains.annotations.ApiStatus
 
 import javax.inject.Inject
 
@@ -47,6 +49,7 @@ import javax.inject.Inject
  * {@link Licenser} plugin.
  */
 class LicenseExtension extends LicenseProperties {
+    private final Project project
 
     /**
      * The charset to read/write the files with.
@@ -114,6 +117,7 @@ class LicenseExtension extends LicenseProperties {
     LicenseExtension(final ObjectFactory objects, final Project project) {
         super(new PatternSet(), objects, project.resources.text)
 
+        this.project = project
         this.objects = objects
         this.textResources = project.resources.text
         this.providers = project.providers
@@ -203,21 +207,11 @@ class LicenseExtension extends LicenseProperties {
     /**
      * Adds a new conditional license header that will be applied to all matching files.
      *
-     * @param args A map definition of the pattern, similar to {@link Project#fileTree(Map)}
-     * @param closure The closure that configures the license header
-     */
-    void matching(Map<String, ?> args, @DelegatesTo(LicenseProperties) Closure closure) {
-        matching(ConfigureUtil.configureByMap(args, new PatternSet()), closure)
-    }
-
-    /**
-     * Adds a new conditional license header that will be applied to all matching files.
-     *
      * @param patternClosure A closure that configures the {@link PatternFilterable}
      * @param configureClosure The closure that configures the license header
      */
     void matching(@DelegatesTo(PatternFilterable) Closure patternClosure, @DelegatesTo(LicenseProperties) Closure configureClosure) {
-        matching(ConfigureUtil.configure(patternClosure, new PatternSet()), configureClosure)
+        matching(this.configure(new PatternSet(), patternClosure), configureClosure)
     }
 
     /**
@@ -227,7 +221,7 @@ class LicenseExtension extends LicenseProperties {
      * @param closure The closure that configures the license header
      */
     void matching(PatternSet pattern, @DelegatesTo(LicenseProperties) Closure closure) {
-        conditionalProperties.add(ConfigureUtil.configure(closure, new LicenseProperties(pattern, this.objects, this.textResources, this.charset)))
+        conditionalProperties.add(this.configure(new LicenseProperties(pattern, this.objects, this.textResources, this.charset), closure))
     }
 
     /**
@@ -289,4 +283,8 @@ class LicenseExtension extends LicenseProperties {
         this.header.set(this.charset.map { this.textResources.fromFile(header, it) })
     }
 
+    // configure
+    private <T> T configure(T object, Closure closure) {
+        this.project.configure(object, closure) as T
+    }
 }
