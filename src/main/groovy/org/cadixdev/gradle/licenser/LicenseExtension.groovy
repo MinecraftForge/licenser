@@ -30,7 +30,6 @@ import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.internal.ConfigureByMapAction
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.provider.ListProperty
@@ -39,8 +38,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.ConfigureUtil
-import org.jetbrains.annotations.ApiStatus
 
 import javax.inject.Inject
 
