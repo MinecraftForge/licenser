@@ -38,7 +38,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.ConfigureUtil
 
 import javax.inject.Inject
 
@@ -83,7 +82,7 @@ class LicenseExtension extends LicenseProperties {
      * By default this includes mappings and styles for the most common file
      * types.
      */
-    HeaderFormatRegistry style = new HeaderFormatRegistry()
+    final HeaderFormatRegistry style = new HeaderFormatRegistry()
 
     /**
      * The (case-insensitive) keywords that identify a comment as license
@@ -196,8 +195,8 @@ class LicenseExtension extends LicenseProperties {
      * @param include A single include pattern
      * @param closure The closure that configures the license header
      */
-    void matching(String include, @DelegatesTo(LicenseProperties) Closure closure) {
-        matching(new PatternSet().include(include), closure)
+    void matching(String include, Action<? super LicenseProperties> closure) {
+        this.matching(new PatternSet().include(include), closure)
     }
 
     /**
@@ -206,37 +205,41 @@ class LicenseExtension extends LicenseProperties {
      * @param args A map definition of the pattern, similar to {@link Project#fileTree(Map)}
      * @param closure The closure that configures the license header
      */
-    void matching(Map<String, ?> args, @DelegatesTo(LicenseProperties) Closure closure) {
-        matching(ConfigureUtil.configureByMap(args, new PatternSet()), closure)
+    void matching(Map<String, ?> args, Action<? super LicenseProperties> action) {
+        this.matching(new PatternSet().tap {
+            args.forEach { key, value ->
+                it."$key" = value
+            }
+        }, action)
     }
 
     /**
      * Adds a new conditional license header that will be applied to all matching files.
      *
-     * @param patternClosure A closure that configures the {@link PatternFilterable}
-     * @param configureClosure The closure that configures the license header
+     * @param patternAction   An action that configures the {@link PatternFilterable}
+     * @param configureAction The action that configures the license header
      */
-    void matching(@DelegatesTo(PatternFilterable) Closure patternClosure, @DelegatesTo(LicenseProperties) Closure configureClosure) {
-        matching(ConfigureUtil.configure(patternClosure, new PatternSet()), configureClosure)
+    void matching(Action<? super PatternFilterable> patternAction, Action<? super LicenseProperties> configureAction) {
+        this.matching(new PatternSet().tap { patternAction.execute(it) }, configureAction)
     }
 
     /**
      * Adds a new conditional license header that will be applied to all matching files.
      *
      * @param pattern The pattern that matches the files
-     * @param closure The closure that configures the license header
+     * @param action  The action that configures the license header
      */
-    void matching(PatternSet pattern, @DelegatesTo(LicenseProperties) Closure closure) {
-        conditionalProperties.add(ConfigureUtil.configure(closure, new LicenseProperties(pattern, this.objects, this.textResources, this.charset)))
+    void matching(PatternSet pattern, Action<? super LicenseProperties> action) {
+        this.conditionalProperties.add(new LicenseProperties(pattern, this.objects, this.textResources, this.charset).tap { action.execute(it) })
     }
 
     /**
      * Configures the license styles using the specified {@link Closure}.
      *
-     * @param closure The closure to apply to the style
+     * @param action The action to apply to the style
      */
-    void style(@DelegatesTo(HeaderFormatRegistry) Closure closure) {
-        style.with(closure)
+    void style(Action<? extends HeaderFormatRegistry> action) {
+        action.execute(this.style)
     }
 
     /**
