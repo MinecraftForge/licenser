@@ -1,0 +1,33 @@
+sourceSets {
+    functionalTest
+}
+
+configurations {
+    functionalTestImplementation.extendsFrom(testImplementation)
+    functionalTestRuntimeOnly.extendsFrom(testRuntimeOnly)
+}
+
+gradlePlugin.testSourceSets(sourceSets.functionalTest)
+
+tasks.register('functionalTest', Test) {
+    description = 'Runs the functional test suite.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+
+    mustRunAfter test
+}
+
+repositories {
+    gradlePluginPortal()
+}
+
+dependencies {
+    testImplementation gradleTestKit()
+    testImplementation libs.junit
+    testImplementation libs.spock
+    functionalTestImplementation gradleTestKit()
+}
+
+test.useJUnit()

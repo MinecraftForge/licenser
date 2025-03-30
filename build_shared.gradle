@@ -1,0 +1,8 @@
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+    withSourcesJar()
+}
+
+tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.optimizationOptions.indy = true
+}

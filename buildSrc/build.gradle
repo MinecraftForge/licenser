@@ -2,7 +2,7 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+apply from: '../build_shared.gradle'
 
 sourceSets.main.groovy.srcDirs = ['../src/main/groovy']
 

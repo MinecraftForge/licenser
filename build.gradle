@@ -1,61 +1,23 @@
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
+    id 'idea'
+    id 'eclipse'
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '1.2.1'
     id 'net.minecraftforge.licenser'
-    id 'net.minecraftforge.gradleutils' version '2.3.3'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'net.minecraftforge.gradleutils' version '2.4.17'
+    id 'com.gradle.plugin-publish' version '1.3.1'
+    id 'com.gradleup.shadow' version '8.3.6'
 }
 
-
+final projectDisplayName = 'Forge Licenser'
+description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
 group = 'net.minecraftforge'
-version = gradleutils.tagOffsetVersion
+version = gitversion.version.tagOffset
 println "Version: $version"
 
-repositories {
-    gradlePluginPortal()
-}
-
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
-    withSourcesJar()
-}
-
-tasks.withType(GroovyCompile).configureEach {
-    groovyOptions.optimizationOptions.indy = true
-}
-
-sourceSets {
-    functionalTest
-}
-
-configurations {
-    functionalTestImplementation.extendsFrom(testImplementation)
-    functionalTestRuntimeOnly.extendsFrom(testRuntimeOnly)
-}
-gradlePlugin.testSourceSets(sourceSets.functionalTest)
-
-tasks.register('functionalTest', Test) {
-    description = 'Runs the functional tests.'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.functionalTest.output.classesDirs
-    classpath = sourceSets.functionalTest.runtimeClasspath
-
-    mustRunAfter test
-}
-
-dependencies {
-    testImplementation gradleTestKit()
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    functionalTestImplementation gradleTestKit()
-}
-
-test {
-    useJUnit()
-}
+apply from: 'build_shared.gradle'
+apply from: 'build_test.gradle'
 
 license {
     include '**/*.java'
@@ -70,8 +32,8 @@ gradlePlugin {
         licenser {
             id = 'net.minecraftforge.licenser'
             implementationClass = 'net.minecraftforge.licenser.Licenser'
-            displayName = 'Forge Licenser'
-            description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
+            displayName = projectDisplayName
+            description = project.description
             tags = ['license']
         }
     }
@@ -90,14 +52,23 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 
 publishing {
     publications.register('pluginMaven', MavenPublication) {
-        pom {
-            artifactId = 'licenser'
+        pom { pom ->
+            artifactId = project.name
+            name = projectDisplayName
+            description = project.description
+
+            gradleutils.pom.gitHubDetails = pom
+
+            license gradleutils.pom.licenses.MIT
         }
     }
 
     repositories {
         maven {
+            name = 'localFolder'
             url = 'file://' + file('build/repo').absolutePath
         }
     }
 }
+
+idea.module { downloadSources = downloadJavadoc = true }
