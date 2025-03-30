@@ -42,66 +42,63 @@ import org.gradle.api.tasks.util.PatternSet
 import javax.inject.Inject
 
 /**
- * Represents the Gradle extension for configuring the settings for the
- * {@link Licenser} plugin.
+ * Represents the Gradle extension for configuring the settings for the Licenser plugin.
+ *
+ * @see Licenser
  */
 class LicenseExtension extends LicenseProperties {
     private final Project project
 
     /**
      * The charset to read/write the files with.
-     * By default this is {@code UTF-8}.
+     * <p>By default this is {@code UTF-8}.</p>
      */
     Property<String> getCharset() {
         return super.charset // groovy has no distinction between methods and fields...
     }
 
     /**
-     * Whether to ignore failures and only warn about license violations
-     * instead of failing the build.
-     * By default this is {@code false}.
+     * Whether to ignore failures and only warn about license violations instead of failing the build.
+     * <p>By default this is {@code false}.</p>
      */
     final Property<Boolean> ignoreFailures
 
     /**
-     * Whether to skip existing license headers instead of failing the build or
-     * updating the license headers.
-     * By default this is {@code false}.
+     * Whether to skip existing license headers instead of failing the build or updating the license headers.
+     * <p>By default this is {@code false}.</p>
      */
     final Property<Boolean> skipExistingHeaders
 
     /**
      * The line ending to use within license headers.
+     * <p>By default this is {@code System.lineSeparator()}</p>
      *
-     * By default this is {@link System#lineSeparator()}
+     * @see System#lineSeparator()
      */
     final Property<String> lineEnding
 
     /**
-     * The style mappings from file extension to the type of style of the
-     * comment header for the license header.
-     * By default this includes mappings and styles for the most common file
-     * types.
+     * The style mappings from file extension to the type of style of the comment header for the license header.
+     * <p>By default this includes mappings and styles for the most common file types.</p>
      */
     HeaderFormatRegistry style = new HeaderFormatRegistry()
 
     /**
-     * The (case-insensitive) keywords that identify a comment as license
-     * header.
-     * By default this includes only the words "Copyright" and "License".
+     * The (case-insensitive) keywords that identify a comment as license header.
+     * <p>By default this includes only the words "Copyright" and "License".</p>
      */
     final ListProperty<String> keywords
 
     /**
-     * Additional conditional {@link LicenseProperties} matching a subset of
-     * the files in the project's source sets.
+     * Additional conditional properties matching a subset of the files in the project's source sets.
+     *
+     * @see LicenseProperties
      */
     final ListProperty<LicenseProperties> conditionalProperties
 
     /**
-     * Additional custom license tasks that operate on a listed set of files
-     * (not necessarily source sets). Can be used to apply license headers to
-     * sources outside of source sets.
+     * Additional custom license tasks that operate on a listed set of files (not necessarily source sets).
+     * <p>Can be used to apply license headers to sources outside of source sets.</p>
      */
     @Incubating
     final NamedDomainObjectContainer<LicenseTaskProperties> tasks

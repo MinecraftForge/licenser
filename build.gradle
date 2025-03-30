@@ -24,6 +24,20 @@ license {
     include '**/*.groovy'
 }
 
+javadoc.enabled = false
+groovydoc {
+    use = true
+    exclude '**/*.java' // Java classes are package-private and utility only
+}
+
+// javadocJar is created after evaluation, so we need to configure it here
+afterEvaluate {
+    tasks.named('javadocJar', Jar) {
+        dependsOn groovydoc
+        from groovydoc.destinationDir
+    }
+}
+
 gradlePlugin {
     website = 'https://github.com/MinecraftForge/licenser'
     vcsUrl = 'https://github.com/MinecraftForge/licenser.git'

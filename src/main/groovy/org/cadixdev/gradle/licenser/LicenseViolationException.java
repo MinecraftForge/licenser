@@ -32,8 +32,7 @@ import org.gradle.api.GradleException;
 public class LicenseViolationException extends GradleException {
 
     /**
-     * Constructs a new {@link LicenseViolationException} with the specified
-     * message.
+     * Constructs a new exception with the specified message.
      *
      * @param message The exception message
      */

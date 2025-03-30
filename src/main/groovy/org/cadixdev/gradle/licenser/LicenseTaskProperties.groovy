@@ -33,8 +33,9 @@ import org.gradle.api.resources.TextResourceFactory
 import org.gradle.api.tasks.util.PatternSet
 
 /**
- * Represents a custom license task that operates on a number of files
- * defined by {@link #files}.
+ * Represents a custom license task that operates on a number of files.
+ *
+ * @see #files
  */
 @Incubating
 class LicenseTaskProperties extends LicenseProperties {

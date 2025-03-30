@@ -34,28 +34,29 @@ import org.gradle.api.tasks.util.PatternSet
 import javax.inject.Inject
 
 /**
- * Specifies how to format the license header of a subset of the files, defined
- * by the {@link #filter}.
+ * Specifies how to format the license header of a subset of the files, defined by the filter.
+ *
+ * @see #filter
  */
 class LicenseProperties implements PatternFilterable {
 
     /**
      * The filter to apply to the source files.
-     * By default this only includes a few excludes for binary files or files
-     * without standardized comment formats.
+     * <p>By default this only includes a few excludes for binary files or files without standardized comment
+     * formats.</p>
      */
     @Delegate
     PatternFilterable filter
 
     /**
      * The path to the file containing the license header.
-     * By default this is the {@code LICENSE} file in the project directory.
+     * <p>By default this is the {@code LICENSE} file in the project directory.</p>
      */
     final Property<TextResource> header
 
     /**
      * Whether to insert an empty line after the license header.
-     * By default this is {@code true}.
+     * <p>By default this is {@code true}.</p>
      */
     final Property<Boolean> newLine
 
@@ -89,8 +90,9 @@ class LicenseProperties implements PatternFilterable {
     /**
      * Set the header to the contents of a file.
      *
-     * @param header anything accepted in {@link org.gradle.api.Project#file(Object)}
+     * @param header the new header
      * @see #header
+     * @see <a href="https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api/-project/index.html#-1922377900%2FFunctions%2F-1793262594">Project.file(Object)</a>
      */
     void header(final Object header) {
         this.header.set(this.charset.map { this.resources.fromFile(header, it) })
