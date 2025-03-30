@@ -3,6 +3,10 @@ name: Publish
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/workflows/**'
+      - 'README.md'
+      - 'settings.gradle'
 
 permissions:
   contents: read
