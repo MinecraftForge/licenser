@@ -3,17 +3,22 @@ name: Publish
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/workflows/**'
+      - 'README.md'
+      - 'settings.gradle'
 
 permissions:
   contents: read
 
 jobs:
   build:
-    uses: MinecraftForge/SharedActions/.github/workflows/gradle.yml@main
+    uses: MinecraftForge/SharedActions/.github/workflows/gradle.yml@v0
     with:
       java: 17
-      gradle_tasks: "publishPlugins"
+      gradle_tasks: "check publishPlugins"
     secrets:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
       GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+      GRADLE_CACHE_KEY: ${{ secrets.GRADLE_CACHE_KEY }}

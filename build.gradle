@@ -1,60 +1,30 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.plugins.jvm.JvmTestSuite
+
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
+    id 'jvm-test-suite'
+    id 'idea'
+    id 'eclipse'
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '1.2.1'
-    id 'net.minecraftforge.licenser'
-    id 'net.minecraftforge.gradleutils' version '2.3.3'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'net.minecraftforge.licenser' version '1.1.1'
+    id 'net.minecraftforge.gradleutils' version '2.5.1'
+    id 'com.gradle.plugin-publish' version '1.3.1'
+    id 'com.gradleup.shadow' version '8.3.6'
 }
 
-
+final projectDisplayName = 'Forge Licenser'
+description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
 group = 'net.minecraftforge'
-version = gradleutils.tagOffsetVersion
+version = gitversion.tagOffset
+
 println "Version: $version"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 repositories {
     gradlePluginPortal()
-}
-
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
-    withSourcesJar()
-}
-
-tasks.withType(GroovyCompile).configureEach {
-    groovyOptions.optimizationOptions.indy = true
-}
-
-sourceSets {
-    functionalTest
-}
-
-configurations {
-    functionalTestImplementation.extendsFrom(testImplementation)
-    functionalTestRuntimeOnly.extendsFrom(testRuntimeOnly)
-}
-gradlePlugin.testSourceSets(sourceSets.functionalTest)
-
-tasks.register('functionalTest', Test) {
-    description = 'Runs the functional tests.'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.functionalTest.output.classesDirs
-    classpath = sourceSets.functionalTest.runtimeClasspath
-
-    mustRunAfter test
-}
-
-dependencies {
-    testImplementation gradleTestKit()
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    functionalTestImplementation gradleTestKit()
-}
-
-test {
-    useJUnit()
 }
 
 license {
@@ -62,42 +32,85 @@ license {
     include '**/*.groovy'
 }
 
-gradlePlugin {
-    website = 'https://github.com/MinecraftForge/licenser'
-    vcsUrl = 'https://github.com/MinecraftForge/licenser.git'
+javadoc.enabled = false
+groovydoc.use = true
 
-    plugins {
-        licenser {
-            id = 'net.minecraftforge.licenser'
-            implementationClass = 'net.minecraftforge.licenser.Licenser'
-            displayName = 'Forge Licenser'
-            description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
-            tags = ['license']
-        }
+// javadocJar is created after evaluation, so we need to configure it here
+afterEvaluate {
+    tasks.named('javadocJar', Jar) {
+        dependsOn tasks.named('groovydoc', Groovydoc)
+        from groovydoc.destinationDir
     }
 }
 
-jar {
+testing {
+    suites.configureEach { JvmTestSuite suite ->
+        suite.dependencies {
+            implementation.add project()
+            implementation.add gradleTestKit()
+            libs.bundles.spock.get().forEach { dependency ->
+                implementation.add dependency
+            }
+        }
+
+        suite.useJUnitJupiter(libs.junit.get().version)
+
+        suite.targets.configureEach {
+            testTask.configure {
+                shouldRunAfter test
+            }
+        }
+    }
+
+    suites.named('test', JvmTestSuite)
+    suites.register('functionalTest', JvmTestSuite)
+}
+
+gradlePlugin {
+    testSourceSets sourceSets.functionalTest
+
+    website = gitversion.url
+    vcsUrl = gitversion.url + '.git'
+
+    plugins.register('licenser') {
+        id = 'net.minecraftforge.licenser'
+        implementationClass = 'net.minecraftforge.licenser.Licenser'
+        displayName = projectDisplayName
+        description = project.description
+        tags = ['license']
+    }
+}
+
+tasks.named('jar', Jar) {
     archiveClassifier = 'thin'
 }
 
-tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+tasks.named('shadowJar', ShadowJar) {
     enableRelocation = true
     archiveClassifier = null
     relocationPrefix = 'net.minecraftforge.licenser.shadow'
-    relocate 'org.cadixdev.gradle.licenser', 'net.minecraftforge.licenser'
 }
 
 publishing {
     publications.register('pluginMaven', MavenPublication) {
-        pom {
-            artifactId = 'licenser'
+        pom { pom ->
+            artifactId = project.name
+            name = projectDisplayName
+            description = project.description
+
+            gradleutils.pom.gitHubDetails = pom
+
+            license gradleutils.pom.licenses.MIT
         }
     }
 
     repositories {
+        // TODO [Licenser] Use publishing Forge maven?
         maven {
+            name = 'localFolder'
             url = 'file://' + file('build/repo').absolutePath
         }
     }
 }
+
+idea.module { downloadSources = downloadJavadoc = true }
