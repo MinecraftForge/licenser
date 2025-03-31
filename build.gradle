@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
@@ -5,7 +7,7 @@ plugins {
     id 'eclipse'
     id 'maven-publish'
     id 'net.minecraftforge.licenser'
-    id 'net.minecraftforge.gradleutils' version '2.4.17'
+    id 'net.minecraftforge.gradleutils' version '2.5.1'
     id 'com.gradle.plugin-publish' version '1.3.1'
     id 'com.gradleup.shadow' version '8.3.6'
 }
@@ -13,9 +15,9 @@ plugins {
 final projectDisplayName = 'Forge Licenser'
 description = 'A simple license header manager for Gradle - Fork of org.cadixdev.licenser'
 group = 'net.minecraftforge'
-version = gitversion.version.tagOffset
-println "Version: $version"
+version = gitversion.tagOffset
 
+println "Version: $version"
 apply from: 'build_shared.gradle'
 apply from: 'build_test.gradle'
 
@@ -25,22 +27,19 @@ license {
 }
 
 javadoc.enabled = false
-groovydoc {
-    use = true
-    exclude '**/*.java' // Java classes are package-private and utility only
-}
+groovydoc.use = true
 
 // javadocJar is created after evaluation, so we need to configure it here
 afterEvaluate {
     tasks.named('javadocJar', Jar) {
-        dependsOn groovydoc
+        dependsOn tasks.named('groovydoc', Groovydoc)
         from groovydoc.destinationDir
     }
 }
 
 gradlePlugin {
-    website = 'https://github.com/MinecraftForge/licenser'
-    vcsUrl = 'https://github.com/MinecraftForge/licenser.git'
+    website = gitversion.url
+    vcsUrl = gitversion.url + '.git'
 
     plugins {
         licenser {
@@ -57,7 +56,7 @@ jar {
     archiveClassifier = 'thin'
 }
 
-tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+tasks.named('shadowJar', ShadowJar) {
     enableRelocation = true
     archiveClassifier = null
     relocationPrefix = 'net.minecraftforge.licenser.shadow'
@@ -78,6 +77,7 @@ publishing {
     }
 
     repositories {
+        // TODO [Licenser] Use publishing Forge maven?
         maven {
             name = 'localFolder'
             url = 'file://' + file('build/repo').absolutePath
